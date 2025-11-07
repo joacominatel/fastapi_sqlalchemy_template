@@ -1,21 +1,27 @@
+from __future__ import annotations
+
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-from core.config import settings
+
 from api.routes import healthcheck
+from core.config import settings
+from core.logging import logger, setup_logging
 from db.session import init_models
 
 
 def create_app() -> FastAPI:
     """Factory pattern: creates and configures a FastAPI application."""
-    # --- Lifespan events ---
+    setup_logging()
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        print("Starting up...")
+        logger.bind(event="lifespan", stage="startup").info("Application startup")
         if settings.AUTO_CREATE_SCHEMA:
             await init_models()
         yield
-        print("Shutting down...")
+        logger.bind(event="lifespan", stage="shutdown").info("Application shutdown")
 
     app = FastAPI(
         title=settings.APP_NAME,
