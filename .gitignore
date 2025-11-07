@@ -1,0 +1,40 @@
+# fastapi
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# virtual environment
+venv/
+.env*
+!.env.example
+
+# IDEs and editors
+.vscode/
+.cursor/
+
+# macOS
+.DS_Store
+
+# logs
+*.log
+
+# database
+*.sqlite
+*.db
+*.sqlite3
+*.db
+
+# test coverage
+htmlcov/
+.coverage
+.coverage.*
+.nox/
+.pytest_cache/
+
+# build files
+build/
+dist/
+
+# extra
+example/
