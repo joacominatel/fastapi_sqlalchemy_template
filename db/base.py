@@ -1,5 +1,6 @@
 import re
 from sqlalchemy.orm import DeclarativeBase, declared_attr
+from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy import MetaData
 
 metadata = MetaData(
@@ -16,7 +17,7 @@ def camel_to_snake(name: str) -> str:
     s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
-class Base(DeclarativeBase):
+class Base(AsyncAttrs, DeclarativeBase):
     metadata = metadata
 
     @declared_attr.directive
