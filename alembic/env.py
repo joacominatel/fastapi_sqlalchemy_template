@@ -8,6 +8,7 @@ import logging
 
 from db.base import Base  # import your Base metadata
 from core.config import settings
+import db.models  # noqa: F401  # ensure models are registered
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
