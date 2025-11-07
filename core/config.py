@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     HOST: str = Field(default="0.0.0.0", description="Host address to bind the FastAPI server")
     PORT: int = Field(default=8000, description="Port to run the FastAPI app on")
 
+    # --- Localization ---
+    TIMEZONE: str = Field(default="UTC", description="IANA timezone name used for application timestamps")
+
     # --- Alembic / migrations ---
     ALEMBIC_MIGRATION_PATH: str = Field(default="migrations", description="Path to Alembic migration directory")
 
