@@ -1,3 +1,5 @@
+from collections.abc import AsyncGenerator
+
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -18,11 +20,11 @@ AsyncSessionLocal = async_sessionmaker(
 
 async def init_models():
     """Optional: create tables in development without migrations (not recommended in prod)."""
+    import db.models  # noqa: F401  # ensure models are registered with Base.metadata
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    await engine.dispose()
 
-async def get_session() -> AsyncSession:
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
             yield session

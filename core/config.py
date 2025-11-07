@@ -16,6 +16,10 @@ class Settings(BaseSettings):
 
     # --- Database ---
     DATABASE_URL: AnyUrl = Field(..., description="Full database URL with driver, e.g. postgres+asyncpg://user:pass@db/app")
+    AUTO_CREATE_SCHEMA: bool = Field(
+        default=False,
+        description="Automatically create database schema on startup (development only)",
+    )
 
     # --- Server ---
     HOST: str = Field(default="0.0.0.0", description="Host address to bind the FastAPI server")
