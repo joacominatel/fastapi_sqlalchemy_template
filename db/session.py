@@ -7,7 +7,7 @@ from core.config import settings
 from db.base import Base
 
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    str(settings.DATABASE_URL),
     echo=settings.DEBUG,
     future=True,  # conv for SQLAlchemy 2
 )
