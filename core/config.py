@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     APP_NAME: str = "FastAPI Template"
     DEBUG: bool = Field(default=False, description="Enable debug logging and verbose SQL output")
     ENVIRONMENT: str = Field(default="development", description="Environment name: development/staging/production")
+    VERSION: str = Field(default="0.1.0", description="Application version")
+    
+    # --- API ---
+    API_PREFIX: str = Field(default="/api", description="Global prefix for all API routes")
 
     # --- Database ---
     DATABASE_URL: AnyUrl = Field(..., description="Full database URL with driver, e.g. postgres+asyncpg://user:pass@db/app")
