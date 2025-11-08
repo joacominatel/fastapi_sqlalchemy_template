@@ -15,8 +15,18 @@ dependencies = [
     "sqlalchemy>=2.0.44",
     "uvicorn>=0.38.0",
     "pydantic[email]>=2.12.4",
+    "httpx>=0.28.1",
+    "opentelemetry-api>=1.38.0",
+    "opentelemetry-instrumentation-fastapi>=0.59b0",
+    "opentelemetry-sdk>=1.38.0",
+    "prometheus-fastapi-instrumentator>=7.1.0",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
 ]
 
 [tool.pyright]
 extraPaths = ["."]
 reportMissingImports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
