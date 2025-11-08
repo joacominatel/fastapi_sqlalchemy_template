@@ -27,3 +27,12 @@ jobs:
 
       - name: Run test coverage
         run: make coverage
+        env:
+            DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+            APP_NAME: "fastapi-template"
+            DEBUG: "False"
+            ENVIRONMENT: "development"
+            HOST: "0.0.0.0"
+            PORT: "8090"
+            ALEMBIC_MIGRATION_PATH: "migrations"
+            LOG_LEVEL: "DEBUG"
