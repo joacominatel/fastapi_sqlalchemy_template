@@ -21,4 +21,5 @@ No hacks, no tutorial boilerplate, no half-baked “example_app.py”s. Just a g
 * **FastAPI**
 * **Alembic** for migrations
 * **Async SQL Alchemy**
-
+* **Prometheus metrics** via `prometheus-fastapi-instrumentator`
+* **pytest + httpx** for async testing
