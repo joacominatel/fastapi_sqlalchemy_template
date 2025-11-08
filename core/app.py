@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import healthcheck
+from api.routes import healthcheck, users
 from core.config import settings
 from core.logging import logger, setup_logging
 from db.session import init_models
@@ -41,5 +41,6 @@ def create_app() -> FastAPI:
 
     # --- Routers ---
     app.include_router(healthcheck, prefix=f"{settings.API_PREFIX}")
+    app.include_router(users, prefix=f"{settings.API_PREFIX}")
 
     return app
