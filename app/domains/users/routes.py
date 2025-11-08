@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.core.dependencies import get_user_service
-from app.core.logging import logger
+from app.core.logging import logger, update_request_context
 from app.domains.users.schemas import UserCollection, UserCreate, UserRead, UserUpdate
 from app.domains.users.service import UserAlreadyExistsError, UserService
 
@@ -16,6 +16,7 @@ async def _get_user_or_404(service: UserService, user_id: UUID):
     user = await service.get_user(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    update_request_context(user_id=user_id)
     return user
 
 
@@ -40,6 +41,7 @@ async def create_user_endpoint(
         user = await service.create_user(payload)
     except UserAlreadyExistsError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered") from exc
+    update_request_context(user_id=user.id)
     return UserRead.model_validate(user)
 
 
