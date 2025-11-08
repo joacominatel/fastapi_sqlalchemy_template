@@ -4,11 +4,10 @@ import logging
 import os
 import socket
 import sys
+from contextvars import ContextVar
 from typing import Final
-
 from loguru import logger as _logger
-
-from core.config import settings
+from app.core.config import settings
 
 _LOGGER_CONFIGURED: bool = False
 
@@ -28,16 +27,18 @@ _LOGGER_NAMES_TO_INTERCEPT: Final = (
     "sqlalchemy",
 )
 
+_REQUEST_CONTEXT: ContextVar[dict[str, str]] = ContextVar("request_context", default={})
+
 
 class InterceptHandler(logging.Handler):
-    def emit(self, record: logging.LogRecord) -> None:  # noqa: D401
+    def emit(self, record: logging.LogRecord) -> None: # noqa: D401
         try:
             level = _logger.level(record.levelname).name
         except ValueError:
             level = record.levelno
 
         frame, depth = logging.currentframe(), 2
-        while frame and frame.f_code.co_filename == logging.__file__:
+        while frame and frame.f_code.co_filename == logging.__file__: # check for logging module file
             frame = frame.f_back
             depth += 1
 
@@ -45,7 +46,7 @@ class InterceptHandler(logging.Handler):
 
 
 def _setup_stdlib_logging(level: int) -> None:
-    handler = InterceptHandler()
+    handler = InterceptHandler() # custom handler to route stdlib logs to loguru
     logging.basicConfig(handlers=[handler], level=level, force=True)
 
     for name in _LOGGER_NAMES_TO_INTERCEPT:
@@ -55,13 +56,21 @@ def _setup_stdlib_logging(level: int) -> None:
         std_logger.setLevel(level)
 
 
+def _patch_record(record: dict) -> None:
+    """Inject request context into every log record"""
+    # don't know why but if I don't put this docstring loguru complains
+    context = _REQUEST_CONTEXT.get({})
+    if context:
+        record.setdefault("extra", {}).update(context)
+
+
 def setup_logging() -> None:
     global _LOGGER_CONFIGURED
     if _LOGGER_CONFIGURED:
         return
 
     _logger.remove()
-    _logger.configure(extra=_STATIC_EXTRA)
+    _logger.configure(extra=_STATIC_EXTRA, patcher=_patch_record)  # type: ignore[arg-type]
 
     _logger.add(
         sys.stdout,
@@ -78,4 +87,20 @@ def setup_logging() -> None:
     _LOGGER_CONFIGURED = True
 
 
+def reset_request_context() -> None:
+    _REQUEST_CONTEXT.set({})
+
+
+def update_request_context(**kwargs: object) -> None:
+    current = _REQUEST_CONTEXT.get({}).copy()
+    current.update({k: str(v) for k, v in kwargs.items() if v is not None})
+    _REQUEST_CONTEXT.set(current)
+
+
+def get_request_context() -> dict[str, str]:
+    return _REQUEST_CONTEXT.get({}).copy()
+
+
 logger = _logger
+
+__all__ = ["logger", "setup_logging", "update_request_context", "reset_request_context", "get_request_context"]

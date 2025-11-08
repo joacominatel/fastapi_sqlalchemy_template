@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 
@@ -5,8 +7,9 @@ from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db.base import Base
-from util.timezone import aware_now
+from app.core.timezone import aware_now
+from app.db.base import Base
+
 
 class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(
@@ -28,3 +31,6 @@ class User(Base):
         onupdate=aware_now,
         nullable=False,
     )
+
+
+__all__ = ["User"]

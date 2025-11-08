@@ -13,3 +13,12 @@ creating the venv, installing dependencies, wiring the DB, configuring Alembic, 
 This repo gives you a clean, up-to-date, async-ready structure that you can clone and start coding immediately.  
 No hacks, no tutorial boilerplate, no half-baked “example_app.py”s. Just a good foundation.
 
+---
+
+## Tech stack
+* `uv`: using `Python 3.14`
+* **Postgres**: In `docker-compose.yml` version `18-alpine`
+* **FastAPI**
+* **Alembic** for migrations
+* **Async SQL Alchemy**
+

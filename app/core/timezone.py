@@ -1,18 +1,18 @@
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from functools import lru_cache
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from core.config import settings
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_TIMEZONE = "UTC"
-
+_DEFAULT_TIMEZONE = "UTC" # Americas/Argentina/Buenos_Aires 🧉 , just for remember the timezone
 
 @lru_cache(maxsize=1)
 def get_timezone() -> ZoneInfo:
-    """Return the IANA timezone configured for the application."""
     tz_name = settings.TIMEZONE or _DEFAULT_TIMEZONE
     try:
         return ZoneInfo(tz_name)
@@ -22,5 +22,4 @@ def get_timezone() -> ZoneInfo:
 
 
 def aware_now() -> datetime:
-    """Return the current timezone-aware datetime using the configured timezone."""
     return datetime.now(get_timezone())

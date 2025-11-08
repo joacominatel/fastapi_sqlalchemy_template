@@ -6,9 +6,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 import logging
 
-from db.base import Base  # import your Base metadata
-from core.config import settings
-import db.models  # noqa: F401  # ensure models are registered
+from app.core import settings
+from app.db import Base, load_domain_models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -25,6 +24,7 @@ logger = logging.getLogger("alembic.env")
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 config.set_main_option("sqlalchemy.url", str(settings.DATABASE_URL))
+load_domain_models()
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -67,8 +67,11 @@ def do_run_migrations(connection):
         context.run_migrations()
 
 async def run_async_migrations():
+    config_section = config.get_section(config.config_ini_section)
+    assert config_section is not None
+
     connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section),
+        config_section,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
         future=True,

@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import re
-from sqlalchemy.orm import DeclarativeBase, declared_attr
-from sqlalchemy.ext.asyncio import AsyncAttrs
+
 from sqlalchemy import MetaData
+from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase, declared_attr
 
 metadata = MetaData(
     naming_convention={
@@ -17,9 +20,13 @@ def camel_to_snake(name: str) -> str:
     s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
+
 class Base(AsyncAttrs, DeclarativeBase):
     metadata = metadata
 
     @declared_attr.directive
-    def __tablename__(cls) -> str:
+    def __tablename__(cls) -> str:  # type: ignore[override]
         return camel_to_snake(cls.__name__)
+
+
+__all__ = ["Base", "metadata"]
