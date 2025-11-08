@@ -20,8 +20,6 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi>=0.59b0",
     "opentelemetry-sdk>=1.38.0",
     "prometheus-fastapi-instrumentator>=7.1.0",
-    "pytest>=8.4.2",
-    "pytest-asyncio>=1.2.0",
 ]
 
 [tool.pyright]
@@ -29,4 +27,21 @@ extraPaths = ["."]
 reportMissingImports = true
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
+addopts = "--asyncio-mode=auto -q"
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "aiosqlite>=0.21.0",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=5.0.0",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+
+[tool.coverage.report]
+omit = ["*/__init__.py"]
+fail_under = 80
