@@ -6,12 +6,16 @@ import socket
 import sys
 from typing import Final
 from loguru import logger as _logger
+
 from app.core.config import settings
-from app.core.dependencies import (
+from app.core.context import (
+    get_request_context,
     method_ctx,
     path_ctx,
     request_id_ctx,
+    reset_request_context,
     trace_id_ctx,
+    update_request_context,
     user_id_ctx,
 )
 
@@ -61,14 +65,7 @@ def _setup_stdlib_logging(level: int) -> None:
 
 def _patch_record(record: dict) -> None:
     """Inject request context into every log record"""
-    context = {
-        "request_id": request_id_ctx.get(),
-        "trace_id": trace_id_ctx.get(),
-        "path": path_ctx.get(),
-        "method": method_ctx.get(),
-        "user_id": user_id_ctx.get(),
-    }
-    filtered = {k: v for k, v in context.items() if v}
+    filtered = get_request_context()
     if filtered:
         record.setdefault("extra", {}).update(filtered)
 
@@ -96,40 +93,6 @@ def setup_logging() -> None:
     _LOGGER_CONFIGURED = True
 
 
-def reset_request_context() -> None:
-    request_id_ctx.set(None)
-    trace_id_ctx.set(None)
-    path_ctx.set(None)
-    method_ctx.set(None)
-    user_id_ctx.set(None)
-
-
-def update_request_context(**kwargs: object) -> None:
-    if "request_id" in kwargs:
-        request_id_ctx.set(str(kwargs["request_id"]))
-    if "trace_id" in kwargs:
-        trace_id_ctx.set(str(kwargs["trace_id"]))
-    if "path" in kwargs:
-        path_ctx.set(str(kwargs["path"]))
-    if "method" in kwargs:
-        method_ctx.set(str(kwargs["method"]))
-    if "user_id" in kwargs:
-        value = kwargs["user_id"]
-        user_id_ctx.set(None if value is None else str(value))
-
-
-def get_request_context() -> dict[str, str]:
-    return {
-        key: value
-        for key, value in {
-            "request_id": request_id_ctx.get(),
-            "trace_id": trace_id_ctx.get(),
-            "path": path_ctx.get(),
-            "method": method_ctx.get(),
-            "user_id": user_id_ctx.get(),
-        }.items()
-        if value
-    }
 
 
 logger = _logger
