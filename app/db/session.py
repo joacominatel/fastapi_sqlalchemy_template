@@ -10,17 +10,30 @@ from app.core.config import settings
 from app.core.logging import logger
 from app.db.base import Base
 
-engine = create_async_engine(
-    str(settings.DATABASE_URL),
-    echo=settings.DEBUG,
-    future=True,
-)
+# Configure engine with pooling for non-SQLite databases
+_engine_kwargs = {
+    "echo": settings.DEBUG,
+    "future": True,
+}
+
+# Add connection pooling only for databases that support it (not SQLite)
+_db_url = str(settings.DATABASE_URL)
+if "sqlite" not in _db_url.lower():
+    _engine_kwargs.update({
+        "pool_pre_ping": True,  # Verify connections before using them
+        "pool_size": 5,  # Default connection pool size
+        "max_overflow": 10,  # Allow up to 10 additional connections when pool is exhausted
+    })
+
+engine = create_async_engine(_db_url, **_engine_kwargs)
 
 AsyncSessionLocal = async_sessionmaker(
     engine,
     expire_on_commit=False,
     class_=AsyncSession,
 )
+
+_models_loaded = False
 
 def _import_domain_modules(suffix: str) -> None:
     """domain submodules need to be imported so SQLAlchemy registers models"""
@@ -42,7 +55,11 @@ def _import_domain_modules(suffix: str) -> None:
 
 
 def load_domain_models() -> None:
-    _import_domain_modules("models")
+    """Load domain models with caching to avoid repeated imports."""
+    global _models_loaded
+    if not _models_loaded:
+        _import_domain_modules("models")
+        _models_loaded = True
 
 
 async def init_models() -> None:
@@ -66,5 +83,3 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
             await session.rollback()
             logger.exception("Database session rollback due to SQLAlchemyError")
             raise
-        finally:
-            await session.close()
