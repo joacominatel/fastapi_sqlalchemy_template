@@ -22,7 +22,7 @@ from app.core.context import (
 _LOGGER_CONFIGURED: bool = False
 
 def _get_static_extra() -> dict[str, str | int]:
-    """Get static extra fields for logging, computed once."""
+    """Get static extra fields for logging, computed once"""
     return {
         "app": settings.APP_NAME,
         "environment": settings.ENVIRONMENT,

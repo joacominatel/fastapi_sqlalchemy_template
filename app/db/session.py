@@ -10,18 +10,17 @@ from app.core.config import settings
 from app.core.logging import logger
 from app.db.base import Base
 
-# Configure engine with pooling for non-SQLite databases
 _engine_kwargs = {
     "echo": settings.DEBUG,
     "future": True,
 }
 
-# Add connection pooling only for databases that support it (not SQLite)
+# Add connection pooling
 _db_url = str(settings.DATABASE_URL)
 if "sqlite" not in _db_url.lower():
     _engine_kwargs.update({
-        "pool_pre_ping": True,  # Verify connections before using them
-        "pool_size": 5,  # Default connection pool size
+        "pool_pre_ping": True,
+        "pool_size": 5,
         "max_overflow": 10,  # Allow up to 10 additional connections when pool is exhausted
     })
 

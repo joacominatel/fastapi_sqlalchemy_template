@@ -20,7 +20,7 @@ _ENVIRONMENT_CLASS_MAP: dict[str, EnvironmentSettings] = {
 
 def _read_env_hint() -> str | None:
     """Try to discover ENVIRONMENT value from the filesystem before instantiation"""
-    # Check environment variable first (most performant)
+    # Check environment variable first
     candidate = os.environ.get("ENVIRONMENT")
     if candidate:
         return candidate

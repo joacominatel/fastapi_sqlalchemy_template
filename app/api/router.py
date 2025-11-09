@@ -11,7 +11,7 @@ _DOMAINS_PACKAGE = "app.domains"
 
 @lru_cache(maxsize=1)
 def _discover_domain_routers() -> tuple[APIRouter, ...]:
-    """Discover domain routers with caching to avoid repeated filesystem scanning."""
+    """Discover domain routers with caching to avoid repeated filesystem scanning"""
     package = importlib.import_module(_DOMAINS_PACKAGE)
     package_file = getattr(package, "__file__", None)
     if not package_file:
@@ -39,7 +39,7 @@ def _discover_domain_routers() -> tuple[APIRouter, ...]:
 
 
 def build_api_router() -> APIRouter:
-    """Build the main API router by including all discovered domain routers."""
+    """Build the main API router by including all discovered domain routers"""
     api_router = APIRouter()
     for router in _discover_domain_routers():
         api_router.include_router(router)
