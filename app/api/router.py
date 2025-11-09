@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+from functools import lru_cache
 from pathlib import Path
 from pkgutil import iter_modules
 from fastapi import APIRouter
@@ -8,11 +9,13 @@ from app.core.logging import logger
 
 _DOMAINS_PACKAGE = "app.domains"
 
-def _discover_domain_routers() -> list[APIRouter]:
+@lru_cache(maxsize=1)
+def _discover_domain_routers() -> tuple[APIRouter, ...]:
+    """Discover domain routers with caching to avoid repeated filesystem scanning"""
     package = importlib.import_module(_DOMAINS_PACKAGE)
     package_file = getattr(package, "__file__", None)
     if not package_file:
-        return []
+        return ()
 
     package_path = Path(package_file).parent
     routers: list[APIRouter] = []
@@ -32,10 +35,11 @@ def _discover_domain_routers() -> list[APIRouter]:
         else:
             logger.warning("Domain module '%s' missing APIRouter named 'router'", module_path)
 
-    return routers
+    return tuple(routers)
 
 
 def build_api_router() -> APIRouter:
+    """Build the main API router by including all discovered domain routers"""
     api_router = APIRouter()
     for router in _discover_domain_routers():
         api_router.include_router(router)

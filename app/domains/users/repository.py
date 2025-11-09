@@ -15,18 +15,27 @@ class UserRepository:
         self._session = session
 
     async def list(self, *, limit: int, offset: int) -> tuple[Sequence[User], int]:
-        stmt: Select[tuple[User]] = (
+        # Execute both queries in parallel for better performance
+        import asyncio
+        
+        items_stmt: Select[tuple[User]] = (
             select(User)
             .order_by(User.created_at.desc())
             .offset(offset)
             .limit(limit)
         )
-        result = await self._session.scalars(stmt)
-        items = result.all()
-
-        total_stmt = select(func.count(User.id))
-        total = await self._session.scalar(total_stmt)
-        return items, int(total or 0)
+        count_stmt = select(func.count(User.id))
+        
+        # Run both queries concurrently
+        items_result, total_result = await asyncio.gather(
+            self._session.scalars(items_stmt),
+            self._session.scalar(count_stmt)
+        )
+        
+        items = items_result.all()
+        total = int(total_result or 0)
+        
+        return items, total
 
     async def get(self, user_id: UUID) -> User | None:
         return await self._session.get(User, user_id)

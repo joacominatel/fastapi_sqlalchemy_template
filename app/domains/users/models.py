@@ -24,6 +24,7 @@ class User(Base):
         DateTime(timezone=True),
         default=aware_now,
         nullable=False,
+        index=True,  # Index for efficient ordering in list queries
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

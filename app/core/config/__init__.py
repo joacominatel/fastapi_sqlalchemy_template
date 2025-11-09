@@ -20,20 +20,31 @@ _ENVIRONMENT_CLASS_MAP: dict[str, EnvironmentSettings] = {
 
 def _read_env_hint() -> str | None:
     """Try to discover ENVIRONMENT value from the filesystem before instantiation"""
+    # Check environment variable first
     candidate = os.environ.get("ENVIRONMENT")
     if candidate:
         return candidate
 
+    # Only read file if env var not set
     env_file = Path(".env")
     if not env_file.exists():
         return None
 
-    for line in env_file.read_text(encoding="utf-8").splitlines():
-        if not line or line.strip().startswith("#"):
-            continue
-        if line.startswith("ENVIRONMENT"):
-            _, _, value = line.partition("=")
-            return value.strip()
+    # Read file once and parse efficiently
+    try:
+        content = env_file.read_text(encoding="utf-8")
+        for line in content.splitlines():
+            stripped = line.strip()
+            # Skip empty lines and comments
+            if not stripped or stripped.startswith("#"):
+                continue
+            # Check for ENVIRONMENT key
+            if stripped.startswith("ENVIRONMENT="):
+                return stripped.split("=", 1)[1].strip()
+    except (OSError, UnicodeDecodeError):
+        # Gracefully handle file read errors
+        return None
+    
     return None
 
 

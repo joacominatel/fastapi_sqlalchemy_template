@@ -21,13 +21,17 @@ from app.core.context import (
 
 _LOGGER_CONFIGURED: bool = False
 
-_STATIC_EXTRA: Final = {
-    "app": settings.APP_NAME,
-    "environment": settings.ENVIRONMENT,
-    "version": settings.VERSION,
-    "host": socket.gethostname(),
-    "pid": os.getpid(),
-}
+def _get_static_extra() -> dict[str, str | int]:
+    """Get static extra fields for logging, computed once"""
+    return {
+        "app": settings.APP_NAME,
+        "environment": settings.ENVIRONMENT,
+        "version": settings.VERSION,
+        "host": socket.gethostname(),
+        "pid": os.getpid(),
+    }
+
+_STATIC_EXTRA: Final = _get_static_extra()
 
 _LOGGER_NAMES_TO_INTERCEPT: Final = (
     "uvicorn",
