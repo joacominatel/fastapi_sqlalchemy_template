@@ -72,6 +72,10 @@ class AppBaseSettings(BaseSettings):
         description="Probability (0-1) of sampling new root spans",
     )
 
+    # --- Rate limiting ---
+    RATE_LIMIT_ENABLED: bool = Field(default=False, description="Enable rate limiting for API endpoints")
+    REDIS_URL: str = Field(default="redis://localhost:6379/0", description="Redis URL for rate limiting backend")
+
     # Allow subclasses to influence default env files
     default_env_files: ClassVar[tuple[str, ...]] = (".env",)
 
