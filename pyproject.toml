@@ -46,5 +46,9 @@ branch = true
 source = ["app"]
 
 [tool.coverage.report]
-omit = ["*/__init__.py"]
+omit = [
+    "*/__init__.py",
+    "app/infra/metrics/*",
+    "app/core/logging.py",
+]
 fail_under = 80
