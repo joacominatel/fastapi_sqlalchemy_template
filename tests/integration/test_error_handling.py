@@ -3,20 +3,18 @@
 from __future__ import annotations
 
 import pytest
-from fastapi import status
-
 
 class TestUserAlreadyExistsError:
     """Test the UserAlreadyExistsError exception."""
 
     @pytest.mark.asyncio
-    async def test_create_duplicate_user(self, client, session):
+    async def test_create_duplicate_user(self, client, db_session):
         """Test that creating duplicate user raises proper error."""
         from app.domains.users.service import UserAlreadyExistsError, UserService
         from app.domains.users.schemas import UserCreate
         from app.domains.users.repository import UserRepository
         
-        service = UserService(UserRepository(session))
+        service = UserService(UserRepository(db_session))
         
         # Create first user
         user_data = UserCreate(email="duplicate@example.com", is_active=True)
@@ -33,13 +31,13 @@ class TestUserAlreadyExistsError:
         assert "duplicate@example.com" in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_update_user_to_existing_email(self, client, session):
+    async def test_update_user_to_existing_email(self, client, db_session):
         """Test that updating to existing email raises error."""
         from app.domains.users.service import UserAlreadyExistsError, UserService
         from app.domains.users.schemas import UserCreate, UserUpdate
         from app.domains.users.repository import UserRepository
         
-        service = UserService(UserRepository(session))
+        service = UserService(UserRepository(db_session))
         
         # Create two users
         user1 = await service.create_user(
@@ -62,22 +60,19 @@ class TestRepositoryErrorHandling:
     """Test error handling in repository layer."""
 
     @pytest.mark.asyncio
-    async def test_delete_logs_only_on_success(self, session, caplog):
+    async def test_delete_logs_only_on_success(self, db_session, caplog):
         """Test that delete only logs after successful commit."""
         from app.domains.users.repository import UserRepository
         from app.domains.users.models import User
-        from unittest.mock import patch
         
-        repo = UserRepository(session)
-        
+        repo = UserRepository(db_session)
+
         # Create a user
         user = User(email="test@example.com", is_active=True)
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-        
-        user_id = user.id
-        
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+
         # Delete the user successfully
         await repo.delete(user)
         
@@ -86,27 +81,29 @@ class TestRepositoryErrorHandling:
         # In real tests, you'd check caplog for the log message
 
     @pytest.mark.asyncio
-    async def test_delete_rollback_on_error(self, session):
+    async def test_delete_rollback_on_error(self, db_session):
         """Test that delete rolls back on error."""
         from app.domains.users.repository import UserRepository
         from app.domains.users.models import User
         from sqlalchemy.exc import SQLAlchemyError
         from unittest.mock import patch
         
-        repo = UserRepository(session)
+        repo = UserRepository(db_session)
         
         # Create a user
         user = User(email="test@example.com", is_active=True)
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
         
+        user_id = user.id
+
         # Mock commit to raise error
-        with patch.object(session, "commit", side_effect=SQLAlchemyError("Test error")):
+        with patch.object(db_session, "commit", side_effect=SQLAlchemyError("Test error")):
             with pytest.raises(SQLAlchemyError):
                 await repo.delete(user)
         
         # User should still exist (rollback occurred)
-        await session.rollback()
-        result = await session.get(User, user.id)
+        await db_session.rollback()
+        result = await db_session.get(User, user_id)
         assert result is not None
