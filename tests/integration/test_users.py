@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import pytest
+import uuid
 
 
 @pytest.mark.asyncio
 async def test_create_and_fetch_user(client):
-    payload = {"email": "test@example.com", "is_active": True}
+    unique_email = f"test-{uuid.uuid4()}@example.com"
+    payload = {"email": unique_email, "is_active": True}
 
     create_response = await client.post("/api/users/", json=payload)
     assert create_response.status_code == 201

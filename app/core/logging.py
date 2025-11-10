@@ -17,13 +17,8 @@ from loguru import logger as _logger
 from app.core.config import settings
 from app.core.context import (
     get_request_context,
-    method_ctx,
-    path_ctx,
-    request_id_ctx,
     reset_request_context,
-    trace_id_ctx,
     update_request_context,
-    user_id_ctx,
 )
 
 _LOGGER_CONFIGURED: bool = False
@@ -69,7 +64,8 @@ class _AxiomLogSink:
         self._batch_size = batch_size
         self._flush_interval = flush_interval
         self._timeout = timeout
-        self._queue: "queue.Queue[dict[str, Any] | None]" = queue.Queue()
+        # Limit queue size to prevent unbounded memory growth (allow 40x batch size)
+        self._queue: "queue.Queue[dict[str, Any] | None]" = queue.Queue(maxsize=batch_size * 40)
         self._thread = threading.Thread(target=self._drain, name="axiom-log-sink", daemon=True)
         self._thread.start()
 
@@ -117,7 +113,10 @@ class _AxiomLogSink:
             sys.stderr.write("Axiom log queue full; dropping log event\n")
 
     def close(self) -> None:
-        self._queue.put_nowait(None)
+        try:
+            self._queue.put_nowait(None)
+        except queue.Full:  # pragma: no cover - rare condition
+            sys.stderr.write("Axiom log queue full during shutdown; some logs may be lost\n")
         self._thread.join(timeout=self._timeout)
 
     def _drain(self) -> None:
@@ -136,6 +135,9 @@ class _AxiomLogSink:
                         buffer.clear()
                     next_flush = time.monotonic() + self._flush_interval
                     continue
+                except Exception as exc:  # pragma: no cover - catch unexpected queue errors
+                    sys.stderr.write(f"Axiom log drain error: {exc}\n")
+                    break
 
                 if payload is None:
                     if buffer:

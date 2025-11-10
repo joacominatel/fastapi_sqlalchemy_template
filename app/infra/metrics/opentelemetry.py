@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """OpenTelemetry bootstrap helpers
 
 Extend :func:`configure_tracing` to wire exporters, resources, and FastAPI
 instrumentation when observability requirements mature
 """
+
+from __future__ import annotations
 
 from typing import TYPE_CHECKING, Awaitable, Callable
 
@@ -49,10 +49,13 @@ def configure_tracing(
     if not cfg.TRACING_ENABLED:
         return None
 
+    # Use dedicated traces dataset if configured, otherwise fall back to main dataset
     dataset = cfg.AXIOM_TRACES_DATASET_NAME or cfg.AXIOM_DATASET_NAME
     api_key = cfg.AXIOM_API_KEY.strip()
     if not api_key:
         raise RuntimeError("Tracing enabled but AXIOM_API_KEY is missing")
+    if not dataset:
+        raise RuntimeError("Tracing enabled but no Axiom dataset configured (AXIOM_DATASET or AXIOM_TRACES_DATASET required)")
 
     resource = Resource.create(
         {
@@ -145,28 +148,35 @@ class ObservabilityController:
     """Coordinates telemetry setup across the application."""
 
     def __init__(self, settings: AppBaseSettings, *, engine: "AsyncEngine | None" = None) -> None:
+        import threading
+
         self._settings = settings
         self._engine = engine
         self._shutdown_callbacks: list[Callable[[], None] | Callable[[], Awaitable[None]]] = []
         self._configured = False
+        self._lock = threading.Lock()
 
     def startup(self, app: "FastAPI | None" = None) -> None:
-        if self._configured or not self._settings.TRACING_ENABLED:
+        if not self._settings.TRACING_ENABLED:
             return
 
-        shutdown = configure_tracing(settings=self._settings)
-        if shutdown:
-            self._shutdown_callbacks.append(shutdown)
+        with self._lock:
+            if self._configured:
+                return
 
-        if app is not None:
-            self._shutdown_callbacks.append(_instrument_fastapi(app))
+            shutdown = configure_tracing(settings=self._settings)
+            if shutdown:
+                self._shutdown_callbacks.append(shutdown)
 
-        self._shutdown_callbacks.append(_instrument_httpx())
+            if app is not None:
+                self._shutdown_callbacks.append(_instrument_fastapi(app))
 
-        if self._engine is not None:
-            self._shutdown_callbacks.append(_instrument_sqlalchemy(self._engine))
+            self._shutdown_callbacks.append(_instrument_httpx())
 
-        self._configured = True
+            if self._engine is not None:
+                self._shutdown_callbacks.append(_instrument_sqlalchemy(self._engine))
+
+            self._configured = True
 
     async def shutdown(self) -> None:
         import inspect

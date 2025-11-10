@@ -10,9 +10,11 @@ from app.domains.users.repository import UserRepository
 from app.domains.users.schemas import UserCreate, UserUpdate
 
 class UserAlreadyExistsError(Exception):
-    """when attempting to create a user with a duplicate identifier"""
-    # TODO: add message or other details if needed
-    pass
+    """Raised when attempting to create a user with a duplicate identifier"""
+
+    def __init__(self, email: str) -> None:
+        self.email = email
+        super().__init__(f"User with email '{email}' already exists")
 
 
 class UserService:
