@@ -6,13 +6,15 @@ from typing import ClassVar, cast
 from pydantic import AnyUrl, Field, HttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.core.version import get_app_version
+
 
 class AppBaseSettings(BaseSettings):
     # --- App ---
     APP_NAME: str = Field(default="FastAPI Template", description="Human-readable application name")
     DEBUG: bool = Field(default=False, description="Enable debug behaviours like verbose logging")
     ENVIRONMENT: str = Field(default="development", description="Current environment name")
-    VERSION: str = Field(default="0.1.0", description="Semantic application version")
+    VERSION: str = Field(default_factory=get_app_version, description="Semantic application version (auto-derived from Git tags)")
 
     # --- API ---
     API_PREFIX: str = Field(default="/api", description="Global prefix for all API routes")
