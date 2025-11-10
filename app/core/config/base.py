@@ -36,6 +36,8 @@ class AppBaseSettings(BaseSettings):
 
     # --- Logging ---
     LOG_LEVEL: str = Field(default="INFO", description="Base log level for the application stack")
+    AXIOM_DATASET_NAME: str = Field(default="production_loguru", description="Axiom dataset name for log ingestion", alias="AXIOM_DATASET")
+    AXIOM_API_KEY: str = Field(default="", description="Axiom API key for log ingestion", alias="AXIOM_API_KEY")
 
     # Allow subclasses to influence default env files
     default_env_files: ClassVar[tuple[str, ...]] = (".env",)
