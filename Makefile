@@ -1,3 +1,15 @@
+.PHONY: dev test coverage lint format migrate down
+
+help:
+	@echo "Available commands:"
+	@echo "  make dev        - Run the FastAPI development server"
+	@echo "  make test       - Run tests with pytest"
+	@echo "  make coverage   - Run tests with coverage report"
+	@echo "  make lint       - Lint the codebase with ruff"
+	@echo "  make format     - Format the codebase with black"
+	@echo "  make migrate    - Create and apply database migrations"
+	@echo "  make down       - Stop and remove Docker containers and volumes"
+
 dev:
 	uv run fastapi dev app/main.py
 
