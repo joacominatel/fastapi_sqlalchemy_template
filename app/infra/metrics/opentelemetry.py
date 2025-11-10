@@ -31,12 +31,13 @@ def configure_tracing(
     """
 
     from opentelemetry import propagate, trace
-    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter  # type: ignore[import-not-found]
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
     from opentelemetry.sdk.resources import Resource
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
     from opentelemetry.sdk.trace.sampling import ParentBased, TraceIdRatioBased
     from opentelemetry.semconv.resource import ResourceAttributes
+    from opentelemetry.semconv.attributes.service_attributes import SERVICE_NAME, SERVICE_VERSION
     from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
     from opentelemetry.baggage.propagation import W3CBaggagePropagator
 
@@ -55,8 +56,8 @@ def configure_tracing(
 
     resource = Resource.create(
         {
-            ResourceAttributes.SERVICE_NAME: service_name or cfg.APP_NAME,
-            ResourceAttributes.SERVICE_VERSION: cfg.VERSION,
+            SERVICE_NAME: service_name or cfg.APP_NAME,
+            SERVICE_VERSION: cfg.VERSION,
             ResourceAttributes.DEPLOYMENT_ENVIRONMENT: cfg.ENVIRONMENT,
         }
     )
@@ -81,7 +82,7 @@ def configure_tracing(
     provider.add_span_processor(BatchSpanProcessor(exporter))
     trace.set_tracer_provider(provider)
 
-    from opentelemetry.propagators.composite import CompositePropagator  # type: ignore[import-not-found]
+    from opentelemetry.propagators.composite import CompositePropagator
 
     propagate.set_global_textmap(CompositePropagator([TraceContextTextMapPropagator(), W3CBaggagePropagator()]))
 
@@ -96,7 +97,7 @@ def configure_tracing(
 
 
 def _instrument_fastapi(app: "FastAPI") -> Callable[[], None]:
-    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor  # type: ignore[import-not-found]
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
     if id(app) in _INSTRUMENTED_APPS:
         return lambda: None
@@ -117,7 +118,7 @@ def _instrument_sqlalchemy(engine: "AsyncEngine | None") -> Callable[[], None]:
     if engine is None:
         return lambda: None
 
-    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor  # type: ignore[import-not-found]
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 
     instrumentor = SQLAlchemyInstrumentor()
     instrumentor.instrument(engine=engine.sync_engine)
@@ -129,7 +130,7 @@ def _instrument_sqlalchemy(engine: "AsyncEngine | None") -> Callable[[], None]:
 
 
 def _instrument_httpx() -> Callable[[], None]:
-    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor  # type: ignore[import-not-found]
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 
     instrumentor = HTTPXClientInstrumentor()
     instrumentor.instrument()
