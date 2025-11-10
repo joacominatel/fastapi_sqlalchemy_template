@@ -14,7 +14,8 @@ from app.api.health import router as health_router
 from app.api.router import build_api_router
 from app.core.config import settings
 from app.core.logging import logger, reset_request_context, setup_logging, update_request_context
-from app.db.session import init_models
+from app.db.session import engine, init_models
+from app.infra.metrics.opentelemetry import ObservabilityController
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(
@@ -44,14 +45,17 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 def create_app() -> FastAPI:
     """create and configure a FASTAPI application instance"""
     setup_logging()
+    observability = ObservabilityController(settings=settings, engine=engine)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        observability.startup(app)
         logger.bind(event="lifespan", stage="startup").info("Application startup")
         if settings.AUTO_CREATE_SCHEMA:
             await init_models()
         yield
         logger.bind(event="lifespan", stage="shutdown").info("Application shutdown")
+        await observability.shutdown()
 
     app = FastAPI(
         title=settings.APP_NAME,
