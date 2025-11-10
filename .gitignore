@@ -38,3 +38,4 @@ dist/
 
 # extra
 example/
+**/_version.py
