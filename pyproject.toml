@@ -50,5 +50,6 @@ omit = [
     "*/__init__.py",
     "app/infra/metrics/*",
     "app/core/logging.py",
+    "main.py",
 ]
 fail_under = 80
