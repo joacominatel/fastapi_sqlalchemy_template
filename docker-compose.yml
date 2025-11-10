@@ -11,6 +11,16 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - app_net
+  redis:
+    image: redis:8.2-alpine
+    container_name: fastapi_template_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_net
 
   app:
     build:
@@ -19,6 +29,7 @@ services:
     container_name: fastapi_template_app
     depends_on:
       - db
+      - redis
     env_file:
       - .env.docker    # overrides for docker environment
     ports:
@@ -28,6 +39,7 @@ services:
 
 volumes:
   db_data:
+  redis_data:
 
 networks:
   app_net:
