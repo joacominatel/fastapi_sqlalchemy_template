@@ -81,7 +81,7 @@ class UserRepository:
             await self._session.delete(user)
             try:
                 await self._session.commit()
+                logger.bind(user_id=str(user.id)).info("User deleted")
             except SQLAlchemyError:
                 await self._session.rollback()
                 raise
-            logger.bind(user_id=str(user.id)).info("User deleted")

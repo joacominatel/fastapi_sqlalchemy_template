@@ -35,11 +35,11 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         logger.bind(event="request", stage="start").info("Handling request")
         try:
             response = await call_next(request)
+            response.headers.setdefault("x-request-id", request_id)
+            response.headers.setdefault("x-trace-id", trace_id)
+            return response
         finally:
             reset_request_context()
-        response.headers.setdefault("x-request-id", request_id)
-        response.headers.setdefault("x-trace-id", trace_id)
-        return response
 
 
 def create_app() -> FastAPI:
