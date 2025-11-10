@@ -1,6 +1,6 @@
 # AI Coding Agent Instructions
 
-Concise, project-specific guidance to be productive immediately in this FastAPI + Async SQLAlchemy template.
+Concise, project-specific guidance to be productive immediately in this FastAPI + Async SQLAlchemy template. DDD architecture, scalable, best practices.
 
 ## Architecture Overview
 - Entry point: `main.py` creates the app via factory `app/core/app.py:create_app()`.

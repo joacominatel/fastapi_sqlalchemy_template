@@ -3,6 +3,9 @@
 # =========================
 FROM python:3.14-slim-trixie AS builder
 
+ARG APP_VERSION
+ENV APP_VERSION=${APP_VERSION}
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_PROJECT_ENVIRONMENT=.venv
@@ -36,6 +39,9 @@ RUN uv run python -m compileall app || true
 # Runtime stage
 # =========================
 FROM python:3.14-slim-trixie AS runtime
+
+ARG APP_VERSION
+ENV APP_VERSION=${APP_VERSION}
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

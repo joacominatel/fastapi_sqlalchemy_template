@@ -1,6 +1,10 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
 [project]
 name = "fastapi-template"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -36,6 +40,9 @@ testpaths = ["tests"]
 [dependency-groups]
 dev = [
     "aiosqlite>=0.21.0",
+    "hatch>=1.15.1",
+    "hatch-vcs>=0.5.0",
+    "hatchling>=1.27.0",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=5.0.0",
@@ -51,5 +58,20 @@ omit = [
     "app/infra/metrics/*",
     "app/core/logging.py",
     "main.py",
+    "app/_version.py",
 ]
 fail_under = 80
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "app/_version.py"
+
+[tool.hatch.build.targets.sdist]
+include = ["app", "main.py", "pyproject.toml", "README.md"]
+exclude = ["alembic"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+only-include = ["app"]
